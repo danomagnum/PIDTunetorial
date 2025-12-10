@@ -288,6 +288,18 @@
                         <input type="range" id="pipeLengthSlider" min="1" max="50" value="10" step="1">
                     </div>
                 </div>
+
+                <div class="control-group disturbance-control">
+                    <div class="slider-section">
+                        <label for="valveStickinessSlider">Valve Stickiness: <span id="valveStickinessDisplay">0</span></label>
+                        <input type="range" id="valveStickinessSlider" min="0" max="10" value="0" step="1">
+                        <label for="valveSpeedSlider">Valve Speed: <span id="valveSpeedDisplay">50</span>%</label>
+                        <input type="range" id="valveSpeedSlider" min="0" max="100" value="50" step="1">
+                    </div>
+                    <div class="button-section">
+                        <button id="valveStickinessResetBtn" class="step-change-btn" title="Reset">↺</button>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -302,9 +314,10 @@
         let coolingTemp = 60;
         let baseCoolingTemp = 60;
         let valvePosition = 50; // 0-100%
+        let valveTargetPosition = 50; 
         
         // Simulation speed
-        const UPDATE_INTERVAL_MS = 100; // Update every 250ms
+        const UPDATE_INTERVAL_MS = 100; 
         const TIME_STEP = UPDATE_INTERVAL_MS / 1000; // Time step in seconds 
         
         // Flow simulation variables (in GPM - gallons per minute)
@@ -334,6 +347,7 @@
         let outletTempData = [];
         let coolingTempData = [];
         let valvePositionData = [];
+        let valveTargetPositionData = [];
         let setpointData = [];
         let trendTime = 0;
         let trendChart = null; // Will be initialized after DOM loads
@@ -345,10 +359,26 @@
         
         initializePipe();
 
+        let valve_stickiness = 0; // Minimum change to move valve
+        let valve_speed = 0.5;
         let inletTempSmoothing = 0.9;
         let coolingTempSmoothing = 0.9;
         // Update display periodically
         function simulate() {
+
+            let valve_error = valveTargetPosition - valvePosition;
+            if (Math.abs(valve_error) > valve_stickiness) {
+                const next_pos = (valvePosition * (1 - valve_speed) + valveTargetPosition * valve_speed);
+                valvePosition = next_pos
+            }
+            
+            if (valvePosition < 0) {
+                valvePosition = 0;
+            }
+            if (valvePosition > 100) {
+                valvePosition = 100;
+            }
+
             // Add small random variations to make it look realistic
             newinletTemp = inletTemp + (Math.random() - 0.5) * 10; // ~3.6°F variation (~2°C)
             newcoolingTemp = coolingTemp + (Math.random() - 0.5) * 10; // ~1.8°F variation (~1°C)
@@ -413,9 +443,9 @@
                 pidOutput = Math.max(0, Math.min(100, pidOutput));
                 
                 // Apply PID output to valve position
-                valvePosition = Math.round(pidOutput);
+                valveTargetPosition = Math.round(pidOutput);
             } else {
-                integralSum = valvePosition; // Prevent sudden jumps when switching to auto
+                integralSum = valveTargetPosition; // Prevent sudden jumps when switching to auto
                 lastError = 0;
                 pTerm = 0;
                 iTerm = 0;
@@ -442,8 +472,8 @@
             document.getElementById('pTermDisplay').textContent = pTerm.toFixed(1);
             document.getElementById('iTermDisplay').textContent = iTerm.toFixed(1);
             document.getElementById('dTermDisplay').textContent = dTerm.toFixed(1);
-            const totalPidOutput = controlMode === 'auto' ? (pTerm + iTerm + dTerm) : 0;
-            document.getElementById('pidOutputDisplay').textContent = totalPidOutput.toFixed(1);
+            valveTargetPosition = controlMode === 'auto' ? (pTerm + iTerm + dTerm) : valveTargetPosition;
+            document.getElementById('pidOutputDisplay').textContent = valveTargetPosition.toFixed(1);
             
             // Update trend data
             updateTrendData();
@@ -460,6 +490,7 @@
                 outletTempData.push(outletTemp);
                 coolingTempData.push(coolingTemp);
                 valvePositionData.push(valvePosition);
+                valveTargetPositionData.push(valveTargetPosition);
                 setpointData.push(setpoint);
                 
                 // Remove old data if exceeding max points
@@ -469,6 +500,7 @@
                     outletTempData.shift();
                     coolingTempData.shift();
                     valvePositionData.shift();
+                    valveTargetPositionData.shift();
                     setpointData.shift();
                 }
                 
@@ -524,7 +556,7 @@
                 labels: timeLabels,
                 datasets: [
                     {
-                        label: 'Inlet Temp (T1)',
+                        label: 'Inlet Temp',
                         data: inletTempData,
                         borderColor: '#e74c3c',
                         backgroundColor: 'rgba(231, 76, 60, 0.1)',
@@ -533,16 +565,16 @@
                         yAxisID: 'y'
                     },
                     {
-                        label: 'Outlet Temp (T2)',
+                        label: 'Outlet Temp',
                         data: outletTempData,
-                        borderColor: '#3498db',
+                        borderColor: '#f39c12',
                         backgroundColor: 'rgba(52, 152, 219, 0.1)',
                         borderWidth: 2,
                         tension: 0.4,
                         yAxisID: 'y'
                     },
                     {
-                        label: 'Cooling Temp (T3)',
+                        label: 'Cooling Temp',
                         data: coolingTempData,
                         borderColor: '#1abc9c',
                         backgroundColor: 'rgba(26, 188, 156, 0.1)',
@@ -569,6 +601,17 @@
                         borderWidth: 2,
                         tension: 0.4,
                         yAxisID: 'y1'
+                    },
+                    {
+                        label: 'Valve Target Position',
+                        data: valveTargetPositionData,
+                        borderColor: '#9b59b6',
+                        backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        tension: 0,
+                        yAxisID: 'y1',
+                        pointRadius: 0
                     }
                 ]
             },
@@ -658,7 +701,7 @@
         const valveDisplay = document.getElementById('valveDisplay');
         
         valveSlider.addEventListener('input', function() {
-            valvePosition = parseInt(this.value);
+            valveTargetPosition = parseInt(this.value);
             valveDisplay.textContent = valvePosition;
         });
 
@@ -736,7 +779,8 @@
         kiDisplay.textContent = ki.toFixed(2);
         kd = parseFloat(kdInput.value);
         kdDisplay.textContent = kd.toFixed(1);
-        valvePosition = parseInt(valveSlider.value);
+        valveTargetPosition = parseInt(valveSlider.value);
+        valvePosition = valveTargetPosition;
         valveDisplay.textContent = valvePosition;
         pipeLength = parseInt(pipeLengthSlider.value);
         pipeLengthDisplay.textContent = pipeLength;
@@ -847,6 +891,39 @@
             coolingTempSmoothing = noiseLevels[currentCoolantNoiseIndex].smoothing;
             coolantNoiseLevelDisplay.textContent = noiseLevels[currentCoolantNoiseIndex].label;
         });
+
+        // Valve Stickiness Controls
+        const valveStickinessSlider = document.getElementById('valveStickinessSlider');
+        const valveStickinessDisplay = document.getElementById('valveStickinessDisplay');
+        const valveStickinessResetBtn = document.getElementById('valveStickinessResetBtn');
+        valveStickinessSlider.addEventListener('input', function() {
+            const temp = parseInt(this.value);
+            valve_stickiness = temp;
+            valveStickinessDisplay.textContent = valve_stickiness;
+        });
+        valveStickinessResetBtn.addEventListener('click', function() {
+            valve_stickiness = 0;
+            valveStickinessSlider.value = valve_stickiness;
+            valveStickinessDisplay.textContent = valve_stickiness;
+            valve_speed = 0.5;
+            valveSpeedSlider.value = valve_speed * 100;
+            valveSpeedDisplay.textContent = valve_speed * 100;
+        });
+
+        const valveSpeedSlider = document.getElementById('valveSpeedSlider');
+        const valveSpeedDisplay = document.getElementById('valveSpeedDisplay');
+        valveSpeedSlider.addEventListener('input', function() {
+            const temp = parseInt(this.value);
+            valve_speed = temp / 100;
+            valveSpeedDisplay.textContent = temp;
+        });
+        valveSpeedResetBtn.addEventListener('click', function() {
+            valve_speed = 0.5;
+            valveSpeedSlider.value = valve_speed * 100;
+            valveSpeedDisplay.textContent = valve_speed * 100;
+        });
+
+
     </script>
 </body>
 </html>
