@@ -253,7 +253,13 @@
         </div>
         </div>
         <div class="trend-panel">
-            <h2>Process Trends</h2>
+            <div class="trend-panel-header" style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+                <h2 style="margin: 0;">Process Trends</h2>
+            </div>
+                <div class="sim-controls">
+                    <button id="pauseSimBtn" title="Pause Simulation">⏸</button>
+                    <button id="playSimBtn" title="Play Simulation">▶</button>
+                </div>
             <canvas id="trendChart"></canvas>
         </div>
         <div class="disturbance-panel">
@@ -546,8 +552,23 @@
         }
 
         
-        // Start the simulation
-        setInterval(simulate, UPDATE_INTERVAL_MS);
+        // Simulation pause/play logic
+        let simPaused = false;
+        let simInterval = null;
+        function startSim() {
+            if (simInterval) clearInterval(simInterval);
+            simInterval = setInterval(() => { if (!simPaused) simulate(); }, UPDATE_INTERVAL_MS);
+        }
+        function pauseSim() { simPaused = true; }
+        function playSim() { simPaused = false; }
+
+        // Button event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('pauseSimBtn').addEventListener('click', pauseSim);
+            document.getElementById('playSimBtn').addEventListener('click', playSim);
+        });
+
+        startSim();
         simulate();        // Initialize Chart.js trend chart
         const ctx = document.getElementById('trendChart').getContext('2d');
         trendChart = new Chart(ctx, {
