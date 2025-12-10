@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PID Tuning Demo - Temperature Control</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🌡️ PID Temperature Control System</h1>
+        
+        <div class="process-view">
+            <svg width="100%" height="100%" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+                <!-- Definitions for gradients and animations -->
+                <defs>
+                    <!-- Pipe gradient -->
+                    <linearGradient id="pipeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#666;stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#888;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#666;stop-opacity:1" />
+                    </linearGradient>
+                    
+                    <!-- Flow animation pattern -->
+                    <pattern id="flowPattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <rect width="10" height="20" fill="#666"/>
+                        <rect x="10" width="10" height="20" fill="#888"/>
+                        <animateTransform attributeName="patternTransform" type="translate" 
+                            from="0 0" to="20 20" dur="1s" repeatCount="indefinite"/>
+                    </pattern>
+                    
+                    <!-- Vertical flow animation pattern -->
+                    <pattern id="flowPatternVertical" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(90)">
+                        <rect width="10" height="20" fill="#666"/>
+                        <rect x="10" width="10" height="20" fill="#888"/>
+                        <animateTransform attributeName="patternTransform" type="translate" 
+                            from="0 0" to="20 20" dur="1s" repeatCount="indefinite" additive="sum"/>
+                    </pattern>
+                    
+                    <!-- Cooling water flow animation pattern (horizontal) -->
+                    <pattern id="flowPatternCooling" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <rect width="10" height="20" fill="#6eb5ff"/>
+                        <rect x="10" width="10" height="20" fill="#a8d5ff"/>
+                        <animateTransform attributeName="patternTransform" type="translate" 
+                            from="0 0" to="20 20" dur="1s" repeatCount="indefinite"/>
+                    </pattern>
+                    
+                    <!-- Cooling water flow animation pattern (vertical) -->
+                    <pattern id="flowPatternCoolingVertical" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(90)">
+                        <rect width="10" height="20" fill="#6eb5ff"/>
+                        <rect x="10" width="10" height="20" fill="#a8d5ff"/>
+                        <animateTransform attributeName="patternTransform" type="translate" 
+                            from="0 0" to="20 20" dur="1s" repeatCount="indefinite" additive="sum"/>
+                    </pattern>
+                    
+                    <!-- Heat exchanger gradient -->
+                    <linearGradient id="hxGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#c0c0c0;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#e0e0e0;stop-opacity:1" />
+                    </linearGradient>
+                    
+                    <!-- Valve gradient -->
+                    <linearGradient id="valveGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#4a90e2;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#357abd;stop-opacity:1" />
+                    </linearGradient>
+                    
+                    <!-- Sensor gradient -->
+                    <linearGradient id="sensorGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#e74c3c;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#c0392b;stop-opacity:1" />
+                    </linearGradient>
+                    
+                    <!-- Arrow marker for dimension lines -->
+                    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                        <polygon points="0 0, 10 5, 0 10" fill="#666"/>
+                    </marker>
+                </defs>
+                
+                <!-- Main Process Pipes -->
+                <!-- Inlet pipe -->
+                <rect x="50" y="285" width="350" height="30" fill="url(#flowPattern)" stroke="#333" stroke-width="2" rx="4"/>
+                
+                <!-- Pipe through heat exchanger -->
+                <rect x="400" y="285" width="250" height="30" fill="url(#flowPattern)" stroke="#333" stroke-width="2" rx="4"/>
+                
+                <!-- Outlet pipe -->
+                <rect x="650" y="285" width="250" height="30" fill="url(#flowPattern)" stroke="#333" stroke-width="2" rx="4"/>
+                
+                <!-- Pipe length indicator -->
+                <line x1="660" y1="340" x2="890" y2="340" stroke="#666" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowhead)"/>
+                <line x1="890" y1="340" x2="660" y2="340" stroke="#666" stroke-width="2" stroke-dasharray="5,5" marker-start="url(#arrowhead)"/>
+                <rect x="745" y="350" width="70" height="25" fill="rgba(255,255,255,0.95)" stroke="#666" stroke-width="1" rx="4"/>
+                <text x="780" y="367" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333" id="pipeLengthText">10 ft</text>
+                
+                <!-- Cooling System Pipes -->
+                <!-- Cooling inlet from left -->
+                <rect x="50" y="85" width="435" height="30" fill="url(#flowPatternCooling)" stroke="#3a8fd9" stroke-width="2" rx="4"/>
+                
+                <!-- Rounded elbow joint -->
+                <path d="M 485 100 L 525 100 Q 540 100 540 115 L 540 270" 
+                      fill="none" stroke="#3a8fd9" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M 485 100 L 525 100 Q 540 100 540 115 L 540 270" 
+                      fill="none" stroke="url(#flowPatternCooling)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+                
+                <!-- Vertical down to heat exchanger -->
+                <rect x="525" y="115" width="30" height="155" fill="url(#flowPatternCoolingVertical)" stroke="#3a8fd9" stroke-width="2" rx="4"/>
+                
+                <!-- Rounded elbow joint at bottom -->
+                <path d="M 540 345 L 540 360 Q 540 375 540 375 L 540 495" 
+                      fill="none" stroke="#3a8fd9" stroke-width="30" stroke-linecap="round"/>
+                <path d="M 540 345 L 540 360 Q 540 375 540 375 L 540 495" 
+                      fill="none" stroke="url(#flowPatternCoolingVertical)" stroke-width="26" stroke-linecap="round"/>
+                
+                <!-- Cooling outlet/drain -->
+                <rect x="525" y="360" width="30" height="135" fill="url(#flowPatternCoolingVertical)" stroke="#3a8fd9" stroke-width="2" rx="4"/>
+                
+                <!-- Heat Exchanger -->
+                <rect x="400" y="240" width="250" height="110" fill="url(#hxGradient)" stroke="#666" stroke-width="3" rx="8"/>
+                <text x="525" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">HEAT</text>
+                <text x="525" y="305" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">EXCHANGER</text>
+                
+                <!-- Control Valve -->
+                <!-- Valve body -->
+                <g id="controlValve">
+                    <!-- Valve housing -->
+                    <rect x="430" y="70" width="60" height="60" fill="url(#valveGradient)" stroke="#2c5d8f" stroke-width="3" rx="4"/>
+                    
+                    <!-- Actuator -->
+                    <rect x="450" y="45" width="20" height="30" fill="#2c5d8f" stroke="#1a3a5f" stroke-width="2" rx="2"/>
+                    
+                    <!-- Stem -->
+                    <rect x="458" y="70" width="4" height="25" fill="#666" stroke="#333" stroke-width="1"/>
+                    
+                    <!-- Flow direction indicator -->
+                    <polygon points="435,95 445,100 445,90" fill="white" opacity="0.7"/>
+                    <polygon points="475,95 485,100 485,90" fill="white" opacity="0.7"/>
+                    
+                    <!-- Position indicator on actuator -->
+                    <circle cx="460" cy="60" r="8" fill="#4a90e2" stroke="#fff" stroke-width="1.5"/>
+                    
+                    <!-- Valve label and position -->
+                    <text x="460" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#333">VALVE</text>
+                    <text x="460" y="157" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#2c5d8f" id="valveText">50%</text>
+                </g>
+                
+                <!-- Temperature Sensors -->
+                <!-- T1 - Inlet -->
+                <circle cx="200" cy="300" r="30" fill="url(#sensorGradient)" stroke="#a93226" stroke-width="3"/>
+                <text x="200" y="292" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="white">T1</text>
+                <text x="200" y="307" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white" id="temp1">176°F</text>
+                <text x="200" y="318" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white" id="flow1">26 GPM</text>
+                
+                <!-- T2 - Outlet -->
+                <circle cx="800" cy="300" r="30" fill="url(#sensorGradient)" stroke="#a93226" stroke-width="3"/>
+                <text x="800" y="292" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="white">T2</text>
+                <text x="800" y="307" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white" id="temp2">149°F</text>
+                <text x="800" y="318" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white" id="flow2">26 GPM</text>
+                
+                <!-- T3 - Cooling -->
+                <circle cx="250" cy="100" r="30" fill="url(#sensorGradient)" stroke="#a93226" stroke-width="3"/>
+                <text x="250" y="92" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="white">T3</text>
+                <text x="250" y="107" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white" id="temp3">68°F</text>
+                <text x="250" y="118" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white" id="flow3">7 GPM</text>
+                
+                <!-- Labels -->
+                <rect x="50" y="330" width="110" height="25" fill="rgba(255,255,255,0.9)" stroke="#ccc" stroke-width="1" rx="4"/>
+                <text x="105" y="347" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">Process Inlet</text>
+                
+                <rect x="825" y="330" width="120" height="25" fill="rgba(255,255,255,0.9)" stroke="#ccc" stroke-width="1" rx="4"/>
+                <text x="885" y="347" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">Process Outlet</text>
+                
+                <rect x="50" y="45" width="110" height="25" fill="rgba(255,255,255,0.9)" stroke="#ccc" stroke-width="1" rx="4"/>
+                <text x="105" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">Cooling Water</text>
+                
+                <rect x="495" y="505" width="80" height="25" fill="rgba(255,255,255,0.9)" stroke="#ccc" stroke-width="1" rx="4"/>
+                <text x="535" y="522" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">To Drain</text>
+            </svg>
+        </div>
+        
+        <div class="info-panel">
+            <div class="info-card">
+                <h3>System Overview</h3>
+                <p>Hot process fluid enters from the left (T1) and flows through a heat exchanger where it is cooled by cooling water from above. The cooled fluid exits on the right (T2). Cooling water flow is controlled by a valve to regulate the outlet temperature.</p>
+            </div>
+            
+            <div class="info-card">
+                <h3>Process Variables</h3>
+                <p><strong>PV (Process Variable):</strong> T2 - Outlet Temperature<br>
+                <strong>SP (Setpoint):</strong> Target outlet temperature<br>
+                <strong>MV (Manipulated Variable):</strong> Cooling valve position</p>
+            </div>
+            
+            <div class="info-card">
+                <h3>Control Objective</h3>
+                <p>The PID controller adjusts the cooling water valve to maintain the outlet temperature at the desired setpoint, compensating for disturbances in inlet temperature or flow rate.</p>
+            </div>
+        </div>
+        
+        <div class="controls-panel">
+            <div class="control-group">
+                <label for="valveSlider">Manual Valve Position: <span id="valveDisplay">50</span>%</label>
+                <input type="range" id="valveSlider" min="0" max="100" value="50" step="1">
+            </div>
+            <div class="control-group">
+                <label for="pipeLengthSlider">Pipe Length (HX to Sensor): <span id="pipeLengthDisplay">10</span> feet</label>
+                <input type="range" id="pipeLengthSlider" min="1" max="50" value="10" step="1">
+            </div>
+        </div>
+        
+        <div class="pid-panel">
+            <h2>PID Controller</h2>
+            <div class="pid-controls">
+                <div class="pid-group">
+                    <label>
+                        <input type="radio" name="controlMode" value="manual" checked>
+                        Manual Mode
+                    </label>
+                    <label>
+                        <input type="radio" name="controlMode" value="auto">
+                        Automatic Mode (PID)
+                    </label>
+                </div>
+                
+                <div class="pid-parameters">
+                    <div class="pid-param">
+                        <label for="setpoint">Setpoint (Target Temp): <span id="setpointDisplay">140</span>°F</label>
+                        <input type="number" id="setpoint" min="50" max="180" value="140" step="1">
+                    </div>
+                    
+                    <div class="pid-param">
+                        <label for="kp">Kp (Proportional Gain): <span id="kpDisplay">0.0</span></label>
+                        <input type="number" id="kp" min="0" max="10" value="0.0" step="0.1">
+                    </div>
+                    
+                    <div class="pid-param">
+                        <label for="ki">Ki (Integral Gain): <span id="kiDisplay">0.0</span></label>
+                        <input type="number" id="ki" min="0" max="5" value="0.0" step="0.01">
+                    </div>
+                    
+                    <div class="pid-param">
+                        <label for="kd">Kd (Derivative Gain): <span id="kdDisplay">0.0</span></label>
+                        <input type="number" id="kd" min="0" max="10" value="0.0" step="0.1">
+                    </div>
+                    
+                    <div class="pid-param">
+                        <button id="applyPidBtn" class="apply-btn">Apply PID Parameters</button>
+                        <span id="pidValidationMsg" class="validation-msg"></span>
+                    </div>
+                    
+                </div>
+                
+                <div class="pid-status">
+                    <div class="status-item">
+                        <span class="status-label">Error:</span>
+                        <span id="errorDisplay">0.0</span>°F
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">P Term:</span>
+                        <span id="pTermDisplay">0.0</span>%
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">I Term:</span>
+                        <span id="iTermDisplay">0.0</span>%
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">D Term:</span>
+                        <span id="dTermDisplay">0.0</span>%
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">PID Output:</span>
+                        <span id="pidOutputDisplay">0.0</span>%
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="disturbance-panel">
+            <div class="pid-controls">
+            <h2>Process Disturbances</h2>
+                    <div class="pid-param">
+                        <button id="coolantTempStepChangeBtn" class="step-change-btn">Coolant Temp (±10°F)</button>
+                    </div>
+                    <div class="pid-param">
+                        <button id="inletTempStepChangeBtn" class="step-change-btn">Inlet Temp (±10°F)</button>
+                    </div>
+                    <div class="pid-param">
+                        <button id="inletTempNoiseBtn" class="step-change-btn">Inlet Temp Noise: <span id="noiseLevel">Low</span></button>
+                    </div>
+                    <div class="pid-param">
+                        <button id="coolantTempNoiseBtn" class="step-change-btn">Coolant Temp Noise: <span id="coolantNoiseLevel">Low</span></button>
+                    </div>
+</div>
+            </div>
+        
+        <div class="trend-panel">
+            <h2>Process Trends</h2>
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Temperature simulation variables (in Fahrenheit)
+        let inletTemp = 176;
+        let outletTemp = 149;
+        let baseinletTemp = 176;
+        let coolingTemp = 68;
+        let baseCoolingTemp = 68;
+        let valvePosition = 50; // 0-100%
+        
+        // Simulation speed
+        const UPDATE_INTERVAL_MS = 100; // Update every 250ms
+        const TIME_STEP = UPDATE_INTERVAL_MS / 1000; // Time step in seconds 
+        
+        // Flow simulation variables (in GPM - gallons per minute)
+        let inletFlow = 26; // GPM
+        let outletFlow = 26; // GPM
+        let coolingFlow = 7; // GPM
+        
+        // Pipe modeling variables
+        let pipeLength = 10; // feet - adjustable pipe length between HX and outlet sensor
+        let pipeSegments = []; // Array to model temperature along the pipe
+        let segmentCount = 20; // Number of segments to model
+        
+        // PID controller variables
+        let controlMode = 'manual'; // 'manual' or 'auto'
+        let setpoint = 140; // Target outlet temperature (°F)
+        let kp = 0.0; // Proportional gain
+        let ki = 0.0; // Integral gain
+        let kd = 0.0; // Derivative gain
+        let integralSum = 0; // Accumulated integral error
+        let lastError = 0; // Previous error for derivative calculation
+        let pTerm = 0, iTerm = 0, dTerm = 0; // Individual PID terms for display
+        
+        // Trend data storage
+        const maxTrendPoints = 600; // Show last 60 seconds
+        let timeLabels = [];
+        let inletTempData = [];
+        let outletTempData = [];
+        let coolingTempData = [];
+        let valvePositionData = [];
+        let setpointData = [];
+        let trendTime = 0;
+        let trendChart = null; // Will be initialized after DOM loads
+        
+        // Initialize pipe segments
+        function initializePipe() {
+            pipeSegments = new Array(segmentCount).fill(149);
+        }
+        
+        initializePipe();
+
+        let inletTempSmoothing = 0.9;
+        let coolingTempSmoothing = 0.9;
+        // Update display periodically
+        function simulate() {
+            // Add small random variations to make it look realistic
+            newinletTemp = inletTemp + (Math.random() - 0.5) * 10; // ~3.6°F variation (~2°C)
+            newcoolingTemp = coolingTemp + (Math.random() - 0.5) * 10; // ~1.8°F variation (~1°C)
+            newinletTemp = (baseinletTemp + newinletTemp) / 2.0;
+            newcoolingTemp = (baseCoolingTemp + newcoolingTemp) / 2.0;
+            inletTemp = inletTempSmoothing * inletTemp + (1 - inletTempSmoothing) * newinletTemp; // Smooth changes
+            coolingTemp = coolingTempSmoothing * coolingTemp + (1 - coolingTempSmoothing) * newcoolingTemp; // Smooth changes
+            
+            // Flow variations
+            inletFlow = 26 + (Math.random() - 0.5) * 1.3; // ~1.3 GPM variation (~5 L/min)
+            outletFlow = inletFlow; // Assume no losses
+            coolingFlow = (valvePosition / 100) * 29 + (Math.random() - 0.5) * 0.5; // Max ~13 GPM (~50 L/min)
+
+            processDegreeGPM = inletFlow * inletTemp;
+            coolantDegreeGPM = coolingFlow * coolingTemp;
+            totalFlow = inletFlow + coolingFlow;
+            // Simple heat exchanger model
+            finalTemp = (processDegreeGPM + coolantDegreeGPM) / totalFlow;
+            
+            const hxOutletTemp = finalTemp;
+            
+            // Simulate temperature propagation through pipe segments
+            // Shift all segments down the pipe
+            for (let i = pipeSegments.length - 1; i > 0; i--) {
+                pipeSegments[i] = pipeSegments[i - 1];
+            }
+            // Add new temperature from heat exchanger
+            pipeSegments[0] = hxOutletTemp;
+            
+            // Calculate residence time and flow delay
+            // Longer pipes = more delay before temperature changes reach the sensor
+            const flowVelocity = inletFlow / 5; // Simplified velocity calculation
+            const segmentsToDelay = Math.min(Math.floor(pipeLength / 2), segmentCount - 1);
+            
+            // Outlet temperature is the temperature at the end of the pipe
+            outletTemp = pipeSegments[Math.min(segmentsToDelay, pipeSegments.length - 1)];
+            
+            // PID Control Logic
+            if (controlMode === 'auto') {
+                // Calculate error (setpoint - process variable)
+                //const error = setpoint - outletTemp;
+                const error = outletTemp - setpoint;
+                
+                // Proportional term
+                pTerm = kp * error;
+                
+                // Integral term (accumulated error over time)
+                integralSum += ki * error * TIME_STEP;
+                // Anti-windup: limit integral accumulation
+                integralSum = Math.max(-100, Math.min(100, integralSum));
+                iTerm = integralSum;
+                
+                // Derivative term (rate of change of error)
+                const errorChange = (error - lastError) / TIME_STEP;
+                dTerm = kd * errorChange;
+                lastError = error;
+                
+                // Calculate total PID output
+                let pidOutput = pTerm + iTerm + dTerm;
+                
+                // Clamp output to 0-100%
+                pidOutput = Math.max(0, Math.min(100, pidOutput));
+                
+                // Apply PID output to valve position
+                valvePosition = Math.round(pidOutput);
+            } else {
+                // Manual mode - reset integral and derivative terms
+                integralSum = 0;
+                lastError = 0;
+                pTerm = 0;
+                iTerm = 0;
+                dTerm = 0;
+            }
+            
+            // Update SVG text elements
+            document.getElementById('temp1').textContent = inletTemp.toFixed(1) + '°F';
+            document.getElementById('temp2').textContent = outletTemp.toFixed(1) + '°F';
+            document.getElementById('temp3').textContent = coolingTemp.toFixed(1) + '°F';
+            document.getElementById('valveText').textContent = valvePosition + '%';
+            
+            // Update flow measurements
+            document.getElementById('flow1').textContent = inletFlow.toFixed(1) + ' GPM';
+            document.getElementById('flow2').textContent = outletFlow.toFixed(1) + ' GPM';
+            document.getElementById('flow3').textContent = coolingFlow.toFixed(1) + ' GPM';
+            
+            // Update pipe length display on diagram
+            document.getElementById('pipeLengthText').textContent = pipeLength + ' ft';
+            
+            // Update PID status displays
+            const error = setpoint - outletTemp;
+            document.getElementById('errorDisplay').textContent = error.toFixed(1);
+            document.getElementById('pTermDisplay').textContent = pTerm.toFixed(1);
+            document.getElementById('iTermDisplay').textContent = iTerm.toFixed(1);
+            document.getElementById('dTermDisplay').textContent = dTerm.toFixed(1);
+            const totalPidOutput = controlMode === 'auto' ? (pTerm + iTerm + dTerm) : 0;
+            document.getElementById('pidOutputDisplay').textContent = totalPidOutput.toFixed(1);
+            
+            // Update trend data
+            updateTrendData();
+        }
+        
+        // Update trend chart data
+        function updateTrendData() {
+            trendTime += TIME_STEP;
+            
+            // Only add data points every 1 second (every 10th update at 100ms intervals)
+                // Add new data points
+                timeLabels.push(trendTime.toFixed(1));
+                inletTempData.push(inletTemp);
+                outletTempData.push(outletTemp);
+                coolingTempData.push(coolingTemp);
+                valvePositionData.push(valvePosition);
+                setpointData.push(setpoint);
+                
+                // Remove old data if exceeding max points
+                if (timeLabels.length > maxTrendPoints) {
+                    timeLabels.shift();
+                    inletTempData.shift();
+                    outletTempData.shift();
+                    coolingTempData.shift();
+                    valvePositionData.shift();
+                    setpointData.shift();
+                }
+                
+                // Update chart if it's been initialized
+                if (trendChart) {
+                    updateYAxisScale(trendChart);
+                    trendChart.update();
+                }
+        }
+        
+        // Function to auto-scale Y axis based on visible temperature datasets
+        function updateYAxisScale(chart) {
+            let minTemp = Infinity;
+            let maxTemp = -Infinity;
+            
+            // Check which temperature datasets are visible (indices 0, 1, 2, 3 - includes setpoint)
+            for (let i = 0; i < 4; i++) {
+                const meta = chart.getDatasetMeta(i);
+                if (!meta.hidden) {
+                    const data = chart.data.datasets[i].data;
+                    for (let j = 0; j < data.length; j++) {
+                        if (data[j] < minTemp) minTemp = data[j];
+                        if (data[j] > maxTemp) maxTemp = data[j];
+                    }
+                }
+            }
+            
+            // If no visible datasets, use default range
+            if (minTemp === Infinity || maxTemp === -Infinity) {
+                minTemp = 0;
+                maxTemp = 200;
+            } else {
+                // Add padding (10% on each side)
+                const range = maxTemp - minTemp;
+                const padding = range * 0.1;
+                minTemp = Math.floor(minTemp - padding);
+                maxTemp = Math.ceil(maxTemp + padding);
+            }
+            
+            // Update Y axis scale
+            chart.options.scales.y.min = minTemp;
+            chart.options.scales.y.max = maxTemp;
+        }
+
+        
+        // Start the simulation
+        setInterval(simulate, UPDATE_INTERVAL_MS);
+        simulate();        // Initialize Chart.js trend chart
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        trendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [
+                    {
+                        label: 'Inlet Temp (T1)',
+                        data: inletTempData,
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Outlet Temp (T2)',
+                        data: outletTempData,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Cooling Temp (T3)',
+                        data: coolingTempData,
+                        borderColor: '#1abc9c',
+                        backgroundColor: 'rgba(26, 188, 156, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Setpoint',
+                        data: setpointData,
+                        borderColor: '#f39c12',
+                        backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        tension: 0,
+                        yAxisID: 'y',
+                        pointRadius: 0
+                    },
+                    {
+                        label: 'Valve Position',
+                        data: valvePositionData,
+                        borderColor: '#9b59b6',
+                        backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                aspectRatio: 2.5,
+                animation: false, // Disable all animations for smooth real-time updates
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        onClick: function(e, legendItem, legend) {
+                            const index = legendItem.datasetIndex;
+                            const chart = legend.chart;
+                            const meta = chart.getDatasetMeta(index);
+                            
+                            // Toggle visibility
+                            meta.hidden = meta.hidden === null ? !chart.data.datasets[index].hidden : null;
+                            
+                            // Auto-scale Y axis based on visible temperature datasets
+                            updateYAxisScale(chart);
+                            
+                            chart.update();
+                        },
+                        labels: {
+                            usePointStyle: true,
+                            padding: 15,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    title: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: true,
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Time (seconds)'
+                        },
+                        ticks: {
+                            maxTicksLimit: 300
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Temperature (°F)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Valve Position (%)'
+                        },
+                        min: 0,
+                        max: 100,
+                        grid: {
+                            drawOnChartArea: false,
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Valve slider control
+        const valveSlider = document.getElementById('valveSlider');
+        const valveDisplay = document.getElementById('valveDisplay');
+        
+        valveSlider.addEventListener('input', function() {
+            valvePosition = parseInt(this.value);
+            valveDisplay.textContent = valvePosition;
+            simulate();
+        });
+        
+        // Pipe length slider control
+        const pipeLengthSlider = document.getElementById('pipeLengthSlider');
+        const pipeLengthDisplay = document.getElementById('pipeLengthDisplay');
+        
+        pipeLengthSlider.addEventListener('input', function() {
+            pipeLength = parseInt(this.value);
+            pipeLengthDisplay.textContent = pipeLength;
+            simulate();
+        });
+        
+        // PID control mode
+        const controlModeRadios = document.querySelectorAll('input[name="controlMode"]');
+        controlModeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                controlMode = this.value;
+                valveSlider.disabled = (controlMode === 'auto');
+            });
+        });
+        
+        // Initialize control mode from checked radio button
+        const checkedMode = document.querySelector('input[name="controlMode"]:checked');
+        if (checkedMode) {
+            controlMode = checkedMode.value;
+            valveSlider.disabled = (controlMode === 'auto');
+        }
+        
+        // PID parameter inputs
+        const setpointInput = document.getElementById('setpoint');
+        const setpointDisplay = document.getElementById('setpointDisplay');
+        const kpInput = document.getElementById('kp');
+        const kpDisplay = document.getElementById('kpDisplay');
+        const kiInput = document.getElementById('ki');
+        const kiDisplay = document.getElementById('kiDisplay');
+        const kdInput = document.getElementById('kd');
+        const kdDisplay = document.getElementById('kdDisplay');
+        const applyPidBtn = document.getElementById('applyPidBtn');
+        const pidValidationMsg = document.getElementById('pidValidationMsg');
+        
+        // Initialize displays with current values (these are the active values used by PID)
+        setpoint = parseFloat(setpointInput.value);
+        setpointDisplay.textContent = setpoint;
+        kp = parseFloat(kpInput.value);
+        kpDisplay.textContent = kp.toFixed(1);
+        ki = parseFloat(kiInput.value);
+        kiDisplay.textContent = ki.toFixed(2);
+        kd = parseFloat(kdInput.value);
+        kdDisplay.textContent = kd.toFixed(1);
+        valvePosition = parseInt(valveSlider.value);
+        valveDisplay.textContent = valvePosition;
+        pipeLength = parseInt(pipeLengthSlider.value);
+        pipeLengthDisplay.textContent = pipeLength;
+        
+        // Apply PID parameters button with validation
+        applyPidBtn.addEventListener('click', function() {
+            // Parse input values
+            const newSetpoint = parseFloat(setpointInput.value);
+            const newKp = parseFloat(kpInput.value);
+            const newKi = parseFloat(kiInput.value);
+            const newKd = parseFloat(kdInput.value);
+            
+            // Validate all parameters are valid numbers
+            const errors = [];
+            if (isNaN(newSetpoint) || newSetpoint < 50 || newSetpoint > 180) {
+                errors.push('Setpoint must be between 50 and 180°F');
+            }
+            if (isNaN(newKp) || newKp < 0) {
+                errors.push('Kp must be a non-negative number');
+            }
+            if (isNaN(newKi) || newKi < 0) {
+                errors.push('Ki must be a non-negative number');
+            }
+            if (isNaN(newKd) || newKd < 0) {
+                errors.push('Kd must be a non-negative number');
+            }
+            
+            // Show validation results
+            if (errors.length > 0) {
+                pidValidationMsg.textContent = errors.join('; ');
+                pidValidationMsg.className = 'validation-msg error';
+            } else {
+                // Apply the new values
+                setpoint = newSetpoint;
+                kp = newKp;
+                ki = newKi;
+                kd = newKd;
+                
+                // Update displays
+                setpointDisplay.textContent = setpoint;
+                kpDisplay.textContent = kp.toFixed(1);
+                kiDisplay.textContent = ki.toFixed(2);
+                kdDisplay.textContent = kd.toFixed(1);
+                
+                // Show success message
+                pidValidationMsg.textContent = 'Parameters applied successfully';
+                pidValidationMsg.className = 'validation-msg success';
+                
+                // Clear success message after 2 seconds
+                setTimeout(() => {
+                    pidValidationMsg.textContent = '';
+                    pidValidationMsg.className = 'validation-msg';
+                }, 2000);
+            }
+        });
+        
+        // Step Change button - adds a random disturbance to coolant temperature
+        const coolantTempStepChangeBtn = document.getElementById('coolantTempStepChangeBtn');
+        coolantTempStepChangeBtn.addEventListener('click', function() {
+            // Apply a random step change of roughly ±10°F to the base cooling temp
+            const stepChange = (Math.random() > 0.5 ? 1 : -1) * (8 + Math.random() * 4); // ±8 to ±12°F
+            baseCoolingTemp += stepChange;
+            
+            // Keep within reasonable bounds (50-90°F)
+            baseCoolingTemp = Math.max(50, Math.min(90, baseCoolingTemp));
+        });
+        
+        // Step Change button - adds a random disturbance to inlet temperature
+        const inletTempStepChangeBtn = document.getElementById('inletTempStepChangeBtn');
+        inletTempStepChangeBtn.addEventListener('click', function() {
+            // Apply a random step change of roughly ±10°F to the base inlet temp
+            const stepChange = (Math.random() > 0.5 ? 1 : -1) * (8 + Math.random() * 4); // ±8 to ±12°F
+            baseinletTemp += stepChange;
+            
+            // Keep within reasonable bounds (140-210°F)
+            baseinletTemp = Math.max(140, Math.min(210, baseinletTemp));
+        });
+        
+        // Inlet Temp Noise button - cycles through smoothing values
+        const inletTempNoiseBtn = document.getElementById('inletTempNoiseBtn');
+        const noiseLevelDisplay = document.getElementById('noiseLevel');
+        const noiseLevels = [
+            { smoothing: 0.9, label: 'Low' },
+            { smoothing: 0.5, label: 'Medium' },
+            { smoothing: 0.15, label: 'High' }
+        ];
+        let currentNoiseIndex = 0; // Start at Medium (0.5)
+        
+        inletTempNoiseBtn.addEventListener('click', function() {
+            // Cycle to next noise level
+            currentNoiseIndex = (currentNoiseIndex + 1) % noiseLevels.length;
+            inletTempSmoothing = noiseLevels[currentNoiseIndex].smoothing;
+            noiseLevelDisplay.textContent = noiseLevels[currentNoiseIndex].label;
+        });
+        
+        // Coolant Temp Noise button - cycles through smoothing values
+        const coolantTempNoiseBtn = document.getElementById('coolantTempNoiseBtn');
+        const coolantNoiseLevelDisplay = document.getElementById('coolantNoiseLevel');
+        const coolantNoiseLevels = [
+            { smoothing: 0.9, label: 'Low' },
+            { smoothing: 0.5, label: 'Medium' },
+            { smoothing: 0.15, label: 'High' }
+        ];
+        let currentCoolantNoiseIndex = 0; // Start at Medium (0.5)
+        
+        coolantTempNoiseBtn.addEventListener('click', function() {
+            // Cycle to next noise level
+            currentCoolantNoiseIndex = (currentCoolantNoiseIndex + 1) % coolantNoiseLevels.length;
+            coolingTempSmoothing = coolantNoiseLevels[currentCoolantNoiseIndex].smoothing;
+            coolantNoiseLevelDisplay.textContent = coolantNoiseLevels[currentCoolantNoiseIndex].label;
+        });
+    </script>
+</body>
+</html>

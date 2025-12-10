@@ -1,0 +1,544 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+h1 {
+    text-align: center;
+    color: #1e3c72;
+    margin-bottom: 30px;
+    font-size: 2em;
+}
+
+.process-view {
+    position: relative;
+    width: 100%;
+    height: 600px;
+    background: #f5f5f5;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Pipes */
+.pipe {
+    position: absolute;
+    background: linear-gradient(to bottom, #666, #888, #666);
+    border: 2px solid #333;
+    border-radius: 4px;
+}
+
+.pipe-horizontal {
+    height: 30px;
+}
+
+.pipe-vertical {
+    width: 30px;
+}
+
+/* Main inlet pipe */
+.pipe-inlet {
+    left: 50px;
+    top: 285px;
+    width: 200px;
+}
+
+/* T-junction vertical pipes */
+.pipe-top-branch {
+    left: 235px;
+    top: 150px;
+    height: 135px;
+}
+
+.pipe-bottom-branch {
+    left: 235px;
+    top: 285px;
+    height: 135px;
+}
+
+/* Top pipe through heat exchanger */
+.pipe-to-hx {
+    left: 250px;
+    top: 150px;
+    width: 200px;
+}
+
+/* Bottom bypass pipe */
+.pipe-bypass {
+    left: 250px;
+    top: 390px;
+    width: 400px;
+}
+
+/* Pipe from heat exchanger */
+.pipe-from-hx {
+    left: 600px;
+    top: 150px;
+    width: 50px;
+}
+
+/* Vertical down from HX */
+.pipe-hx-down {
+    left: 635px;
+    top: 150px;
+    height: 240px;
+}
+
+/* Outlet pipe */
+.pipe-outlet {
+    left: 650px;
+    top: 390px;
+    width: 250px;
+}
+
+/* Cooling liquid inlet */
+.pipe-cooling-inlet {
+    left: 535px;
+    top: 50px;
+    height: 80px;
+}
+
+.pipe-cooling-horizontal {
+    left: 520px;
+    top: 115px;
+    width: 30px;
+}
+
+/* Heat Exchanger */
+.heat-exchanger {
+    position: absolute;
+    left: 450px;
+    top: 130px;
+    width: 150px;
+    height: 70px;
+    background: linear-gradient(135deg, #c0c0c0, #e0e0e0);
+    border: 3px solid #666;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #333;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Control Valve */
+.control-valve {
+    position: absolute;
+    left: 510px;
+    top: 30px;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #4a90e2, #357abd);
+    border: 3px solid #2c5d8f;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.control-valve:hover {
+    transform: scale(1.05);
+}
+
+/* Temperature Sensors */
+.temp-sensor {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    border: 3px solid #a93226;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+}
+
+.temp-value {
+    font-size: 16px;
+    margin-top: 2px;
+}
+
+.sensor-inlet {
+    left: 140px;
+    top: 270px;
+}
+
+.sensor-outlet {
+    left: 780px;
+    top: 375px;
+}
+
+.sensor-cooling {
+    left: 510px;
+    top: -20px;
+}
+
+/* Labels */
+.label {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+    border: 1px solid #ccc;
+}
+
+.label-inlet {
+    left: 50px;
+    top: 320px;
+}
+
+.label-outlet {
+    left: 850px;
+    top: 425px;
+}
+
+.label-cooling {
+    left: 470px;
+    top: 15px;
+}
+
+/* Flow animation */
+@keyframes flow {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 20px 20px;
+    }
+}
+
+.pipe-flowing {
+    background-image: repeating-linear-gradient(
+        45deg,
+        #666,
+        #666 10px,
+        #888 10px,
+        #888 20px
+    );
+    animation: flow 1s linear infinite;
+}
+
+/* Info Panel */
+.info-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.info-card {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.info-card h3 {
+    color: #1e3c72;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.info-card p {
+    color: #555;
+    line-height: 1.6;
+}
+
+/* Controls Panel */
+.controls-panel {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #1e3c72;
+    margin-top: 20px;
+}
+
+.control-group {
+    margin-bottom: 15px;
+}
+
+.control-group label {
+    display: block;
+    font-weight: bold;
+    color: #1e3c72;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.control-group input[type="range"] {
+    width: 100%;
+    height: 8px;
+    border-radius: 5px;
+    background: #ddd;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.control-group input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #4a90e2;
+    cursor: pointer;
+    border: 2px solid #2c5d8f;
+}
+
+.control-group input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #4a90e2;
+    cursor: pointer;
+    border: 2px solid #2c5d8f;
+}
+
+.control-group input[type="range"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.control-group input[type="range"]:disabled::-webkit-slider-thumb {
+    background: #999;
+    border-color: #666;
+    cursor: not-allowed;
+}
+
+.control-group input[type="range"]:disabled::-moz-range-thumb {
+    background: #999;
+    border-color: #666;
+    cursor: not-allowed;
+}
+
+/* Trend Panel */
+.trend-panel {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #1e3c72;
+    margin-top: 20px;
+}
+
+.trend-panel h2 {
+    color: #1e3c72;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+    text-align: center;
+}
+
+/* Trend Panel */
+.disturbance-panel {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #1e3c72;
+    margin-top: 20px;
+}
+
+.disturbance-panel h2 {
+    color: #1e3c72;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+    text-align: center;
+}
+
+/* PID Panel */
+.pid-panel {
+    background: #f0f4f8;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid #1e3c72;
+    margin-top: 20px;
+}
+
+.pid-panel h2 {
+    color: #1e3c72;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+    text-align: center;
+}
+
+.pid-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.pid-group {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    padding: 10px;
+    background: white;
+    border-radius: 6px;
+}
+
+.pid-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    color: #1e3c72;
+    cursor: pointer;
+}
+
+.pid-group input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.pid-parameters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.pid-param label {
+    display: block;
+    font-weight: bold;
+    color: #1e3c72;
+    margin-bottom: 5px;
+    font-size: 13px;
+}
+
+.pid-param input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.pid-param input[type="number"]:focus {
+    outline: none;
+    border-color: #4a90e2;
+}
+
+.pid-status {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border-left: 4px solid #4a90e2;
+}
+
+.status-label {
+    font-weight: bold;
+    color: #555;
+    font-size: 13px;
+}
+
+.status-item span:last-child {
+    font-weight: bold;
+    color: #1e3c72;
+    font-size: 14px;
+}
+
+.apply-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.apply-btn:hover {
+    background-color: #229954;
+}
+
+.apply-btn:active {
+    background-color: #1e8449;
+}
+
+.validation-msg {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    min-height: 18px;
+}
+
+.validation-msg.error {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.validation-msg.success {
+    color: #27ae60;
+    font-weight: bold;
+}
+
+.step-change-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #e67e22;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.step-change-btn:hover {
+    background-color: #d35400;
+}
+
+.step-change-btn:active {
+    background-color: #ba4a00;
+}
