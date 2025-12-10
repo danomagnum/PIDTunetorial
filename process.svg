@@ -1,0 +1,165 @@
+            <svg width="100%" height="100%" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+                <!-- Definitions for gradients and animations -->
+                <defs>
+                    <!-- Pipe gradient -->
+                    <linearGradient id="pipeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#666;stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#888;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#666;stop-opacity:1" />
+                    </linearGradient>
+                    
+                    <!-- Flow animation pattern -->
+                    <pattern id="flowPattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <rect width="10" height="20" fill="#666"/>
+                        <rect x="10" width="10" height="20" fill="#888"/>
+                        <animateTransform attributeName="patternTransform" type="translate" 
+                            from="0 0" to="20 20" dur="1s" repeatCount="indefinite"/>
+                    </pattern>
+                    
+                    <!-- Vertical flow animation pattern -->
+                    <pattern id="flowPatternVertical" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(90)">
+                        <rect width="10" height="20" fill="#666"/>
+                        <rect x="10" width="10" height="20" fill="#888"/>
+                        <animateTransform attributeName="patternTransform" type="translate" 
+                            from="0 0" to="20 20" dur="1s" repeatCount="indefinite" additive="sum"/>
+                    </pattern>
+                    
+                    <!-- Cooling water flow animation pattern (horizontal) -->
+                    <pattern id="flowPatternCooling" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <rect width="10" height="20" fill="#6eb5ff"/>
+                        <rect x="10" width="10" height="20" fill="#a8d5ff"/>
+                        <animateTransform attributeName="patternTransform" type="translate" 
+                            from="0 0" to="20 20" dur="1s" repeatCount="indefinite"/>
+                    </pattern>
+                    
+                    <!-- Cooling water flow animation pattern (vertical) -->
+                    <pattern id="flowPatternCoolingVertical" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(90)">
+                        <rect width="10" height="20" fill="#6eb5ff"/>
+                        <rect x="10" width="10" height="20" fill="#a8d5ff"/>
+                        <animateTransform attributeName="patternTransform" type="translate" 
+                            from="0 0" to="20 20" dur="1s" repeatCount="indefinite" additive="sum"/>
+                    </pattern>
+                    
+                    <!-- Heat exchanger gradient -->
+                    <linearGradient id="hxGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#c0c0c0;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#e0e0e0;stop-opacity:1" />
+                    </linearGradient>
+                    
+                    <!-- Valve gradient -->
+                    <linearGradient id="valveGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#4a90e2;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#357abd;stop-opacity:1" />
+                    </linearGradient>
+                    
+                    <!-- Sensor gradient -->
+                    <linearGradient id="sensorGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#e74c3c;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#c0392b;stop-opacity:1" />
+                    </linearGradient>
+                    
+                    <!-- Arrow marker for dimension lines -->
+                    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                        <polygon points="0 0, 10 5, 0 10" fill="#666"/>
+                    </marker>
+                </defs>
+                
+                <!-- Main Process Pipes -->
+                <!-- Inlet pipe -->
+                <rect x="50" y="285" width="350" height="30" fill="url(#flowPattern)" stroke="#333" stroke-width="2" rx="4"/>
+                
+                <!-- Pipe through heat exchanger -->
+                <rect x="400" y="285" width="250" height="30" fill="url(#flowPattern)" stroke="#333" stroke-width="2" rx="4"/>
+                
+                <!-- Outlet pipe -->
+                <rect x="650" y="285" width="250" height="30" fill="url(#flowPattern)" stroke="#333" stroke-width="2" rx="4"/>
+                
+                <!-- Pipe length indicator -->
+                <line x1="660" y1="340" x2="890" y2="340" stroke="#666" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrowhead)"/>
+                <line x1="890" y1="340" x2="660" y2="340" stroke="#666" stroke-width="2" stroke-dasharray="5,5" marker-start="url(#arrowhead)"/>
+                <rect x="745" y="350" width="70" height="25" fill="rgba(255,255,255,0.95)" stroke="#666" stroke-width="1" rx="4"/>
+                <text x="780" y="367" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333" id="pipeLengthText">10 ft</text>
+                
+                <!-- Cooling System Pipes -->
+                <!-- Cooling inlet from left -->
+                <rect x="50" y="85" width="435" height="30" fill="url(#flowPatternCooling)" stroke="#3a8fd9" stroke-width="2" rx="4"/>
+                
+                <!-- Rounded elbow joint -->
+                <path d="M 485 100 L 525 100 Q 540 100 540 115 L 540 270" 
+                      fill="none" stroke="#3a8fd9" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M 485 100 L 525 100 Q 540 100 540 115 L 540 270" 
+                      fill="none" stroke="url(#flowPatternCooling)" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+                
+                <!-- Vertical down to heat exchanger -->
+                <rect x="525" y="115" width="30" height="155" fill="url(#flowPatternCoolingVertical)" stroke="#3a8fd9" stroke-width="2" rx="4"/>
+                
+                <!-- Rounded elbow joint at bottom -->
+                <path d="M 540 345 L 540 360 Q 540 375 540 375 L 540 495" 
+                      fill="none" stroke="#3a8fd9" stroke-width="30" stroke-linecap="round"/>
+                <path d="M 540 345 L 540 360 Q 540 375 540 375 L 540 495" 
+                      fill="none" stroke="url(#flowPatternCoolingVertical)" stroke-width="26" stroke-linecap="round"/>
+                
+                <!-- Cooling outlet/drain -->
+                <rect x="525" y="360" width="30" height="135" fill="url(#flowPatternCoolingVertical)" stroke="#3a8fd9" stroke-width="2" rx="4"/>
+                
+                <!-- Heat Exchanger -->
+                <rect x="400" y="240" width="250" height="110" fill="url(#hxGradient)" stroke="#666" stroke-width="3" rx="8"/>
+                <text x="525" y="285" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">HEAT</text>
+                <text x="525" y="305" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333">EXCHANGER</text>
+                
+                <!-- Control Valve -->
+                <!-- Valve body -->
+                <g id="controlValve">
+                    <!-- Valve housing -->
+                    <rect x="430" y="70" width="60" height="60" fill="url(#valveGradient)" stroke="#2c5d8f" stroke-width="3" rx="4"/>
+                    
+                    <!-- Actuator -->
+                    <rect x="450" y="45" width="20" height="30" fill="#2c5d8f" stroke="#1a3a5f" stroke-width="2" rx="2"/>
+                    
+                    <!-- Stem -->
+                    <rect x="458" y="70" width="4" height="25" fill="#666" stroke="#333" stroke-width="1"/>
+                    
+                    <!-- Flow direction indicator -->
+                    <polygon points="435,95 445,100 445,90" fill="white" opacity="0.7"/>
+                    <polygon points="475,95 485,100 485,90" fill="white" opacity="0.7"/>
+                    
+                    <!-- Position indicator on actuator -->
+                    <circle cx="460" cy="60" r="8" fill="#4a90e2" stroke="#fff" stroke-width="1.5"/>
+                    
+                    <!-- Valve label and position -->
+                    <text x="460" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#333">VALVE</text>
+                    <text x="460" y="157" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#2c5d8f" id="valveText">50%</text>
+                </g>
+                
+                <!-- Temperature Sensors -->
+                <!-- T1 - Inlet -->
+                <circle cx="200" cy="300" r="30" fill="url(#sensorGradient)" stroke="#a93226" stroke-width="3"/>
+                <text x="200" y="292" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="white">T1</text>
+                <text x="200" y="307" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white" id="temp1">176°F</text>
+                <text x="200" y="318" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white" id="flow1">26 GPM</text>
+                
+                <!-- T2 - Outlet -->
+                <circle cx="800" cy="300" r="30" fill="url(#sensorGradient)" stroke="#a93226" stroke-width="3"/>
+                <text x="800" y="292" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="white">T2</text>
+                <text x="800" y="307" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white" id="temp2">149°F</text>
+                <text x="800" y="318" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white" id="flow2">26 GPM</text>
+                
+                <!-- T3 - Cooling -->
+                <circle cx="250" cy="100" r="30" fill="url(#sensorGradient)" stroke="#a93226" stroke-width="3"/>
+                <text x="250" y="92" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="white">T3</text>
+                <text x="250" y="107" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white" id="temp3">68°F</text>
+                <text x="250" y="118" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white" id="flow3">7 GPM</text>
+                
+                <!-- Labels -->
+                <rect x="50" y="330" width="110" height="25" fill="rgba(255,255,255,0.9)" stroke="#ccc" stroke-width="1" rx="4"/>
+                <text x="105" y="347" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">Process Inlet</text>
+                
+                <rect x="825" y="330" width="120" height="25" fill="rgba(255,255,255,0.9)" stroke="#ccc" stroke-width="1" rx="4"/>
+                <text x="885" y="347" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">Process Outlet</text>
+                
+                <rect x="50" y="45" width="110" height="25" fill="rgba(255,255,255,0.9)" stroke="#ccc" stroke-width="1" rx="4"/>
+                <text x="105" y="62" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">Cooling Water</text>
+                
+                <rect x="495" y="505" width="80" height="25" fill="rgba(255,255,255,0.9)" stroke="#ccc" stroke-width="1" rx="4"/>
+                <text x="535" y="522" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">To Drain</text>
+            </svg>

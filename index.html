@@ -161,7 +161,7 @@
                 <!-- T3 - Cooling -->
                 <circle cx="250" cy="100" r="30" fill="url(#sensorGradient)" stroke="#a93226" stroke-width="3"/>
                 <text x="250" y="92" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="white">T3</text>
-                <text x="250" y="107" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white" id="temp3">68°F</text>
+                <text x="250" y="107" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="white" id="temp3">60°F</text>
                 <text x="250" y="118" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white" id="flow3">7 GPM</text>
                 
                 <!-- Labels -->
@@ -179,35 +179,6 @@
             </svg>
         </div>
         
-        <div class="info-panel">
-            <div class="info-card">
-                <h3>System Overview</h3>
-                <p>Hot process fluid enters from the left (T1) and flows through a heat exchanger where it is cooled by cooling water from above. The cooled fluid exits on the right (T2). Cooling water flow is controlled by a valve to regulate the outlet temperature.</p>
-            </div>
-            
-            <div class="info-card">
-                <h3>Process Variables</h3>
-                <p><strong>PV (Process Variable):</strong> T2 - Outlet Temperature<br>
-                <strong>SP (Setpoint):</strong> Target outlet temperature<br>
-                <strong>MV (Manipulated Variable):</strong> Cooling valve position</p>
-            </div>
-            
-            <div class="info-card">
-                <h3>Control Objective</h3>
-                <p>The PID controller adjusts the cooling water valve to maintain the outlet temperature at the desired setpoint, compensating for disturbances in inlet temperature or flow rate.</p>
-            </div>
-        </div>
-        
-        <div class="controls-panel">
-            <div class="control-group">
-                <label for="valveSlider">Manual Valve Position: <span id="valveDisplay">50</span>%</label>
-                <input type="range" id="valveSlider" min="0" max="100" value="50" step="1">
-            </div>
-            <div class="control-group">
-                <label for="pipeLengthSlider">Pipe Length (HX to Sensor): <span id="pipeLengthDisplay">10</span> feet</label>
-                <input type="range" id="pipeLengthSlider" min="1" max="50" value="10" step="1">
-            </div>
-        </div>
         
         <div class="pid-panel">
             <h2>PID Controller</h2>
@@ -222,6 +193,10 @@
                         Automatic Mode (PID)
                     </label>
                 </div>
+            <div class="control-group">
+                <label for="valveSlider">Manual Valve Position: <span id="valveDisplay">50</span>%</label>
+                <input type="range" id="valveSlider" min="0" max="100" value="50" step="1">
+            </div>
                 
                 <div class="pid-parameters">
                     <div class="pid-param">
@@ -278,20 +253,37 @@
         <div class="disturbance-panel">
             <div class="pid-controls">
             <h2>Process Disturbances</h2>
-                    <div class="pid-param">
-                        <button id="coolantTempStepChangeBtn" class="step-change-btn">Coolant Temp (±10°F)</button>
+                <div class="control-group disturbance-control">
+                    <div class="slider-section">
+                        <label for="coolantTempSlider">Coolant Temp: <span id="coolantTempDisplay">60</span> degrees</label>
+                        <input type="range" id="coolantTempSlider" min="40" max="80" value="60" step="1">
                     </div>
-                    <div class="pid-param">
-                        <button id="inletTempStepChangeBtn" class="step-change-btn">Inlet Temp (±10°F)</button>
+                    <div class="button-section">
+                        <button id="coolantTempResetBtn" class="step-change-btn" title="Reset">↺</button>
+                        <button id="coolantTempStepChangeBtn" class="step-change-btn" title="Step Change">!</button>
+                        <button id="coolantTempNoiseBtn" class="step-change-btn" title="Noise"><span id="coolantNoiseLevel">🕨</span></button>
                     </div>
-                    <div class="pid-param">
-                        <button id="inletTempNoiseBtn" class="step-change-btn">Inlet Temp Noise: <span id="noiseLevel">Low</span></button>
+                </div>
+
+                <div class="control-group disturbance-control">
+                    <div class="slider-section">
+                        <label for="inletTempSlider">Inlet Temp: <span id="inletTempDisplay">175</span> degrees</label>
+                        <input type="range" id="inletTempSlider" min="150" max="200" value="175" step="1">
                     </div>
-                    <div class="pid-param">
-                        <button id="coolantTempNoiseBtn" class="step-change-btn">Coolant Temp Noise: <span id="coolantNoiseLevel">Low</span></button>
+                    <div class="button-section">
+                        <button id="inletTempResetBtn" class="step-change-btn" title="Reset">↺</button>
+                        <button id="inletTempStepChangeBtn" class="step-change-btn" title="Step Change">!</button>
+                        <button id="inletTempNoiseBtn" class="step-change-btn" title="Noise"><span id="inletNoiseLevel">🕨</span></button>
                     </div>
-</div>
+                </div>
+                <div class="control-group disturbance-control">
+                    <div class="slider-section">
+                        <label for="pipeLengthSlider">Pipe Length: <span id="pipeLengthDisplay">10</span> feet</label>
+                        <input type="range" id="pipeLengthSlider" min="1" max="50" value="10" step="1">
+                    </div>
+                </div>
             </div>
+        </div>
         
         <div class="trend-panel">
             <h2>Process Trends</h2>
@@ -304,8 +296,8 @@
         let inletTemp = 176;
         let outletTemp = 149;
         let baseinletTemp = 176;
-        let coolingTemp = 68;
-        let baseCoolingTemp = 68;
+        let coolingTemp = 60;
+        let baseCoolingTemp = 60;
         let valvePosition = 50; // 0-100%
         
         // Simulation speed
@@ -420,8 +412,7 @@
                 // Apply PID output to valve position
                 valvePosition = Math.round(pidOutput);
             } else {
-                // Manual mode - reset integral and derivative terms
-                integralSum = 0;
+                integralSum = valvePosition; // Prevent sudden jumps when switching to auto
                 lastError = 0;
                 pTerm = 0;
                 iTerm = 0;
@@ -666,8 +657,35 @@
         valveSlider.addEventListener('input', function() {
             valvePosition = parseInt(this.value);
             valveDisplay.textContent = valvePosition;
-            simulate();
         });
+
+
+        // Coolant Temp Disturbance Controls
+        const coolantTempSlider = document.getElementById('coolantTempSlider');
+        const coolantTempDisplay = document.getElementById('coolantTempDisplay');
+        const coolantTempStepChangeBtn = document.getElementById('coolantTempStepChangeBtn');
+        const coolantTempResetBtn = document.getElementById('coolantTempResetBtn');
+        coolantTempStepChangeBtn.addEventListener('click', function() {
+            const stepChange = Math.floor((Math.random() * 40) + 40); // ±40 to ±80°F
+            baseCoolingTemp = stepChange;
+            coolantTempSlider.value = baseCoolingTemp;
+            coolantTempDisplay.textContent = baseCoolingTemp;
+            
+        });
+        coolantTempSlider.addEventListener('input', function() {
+            coolantTemp = parseInt(this.value);
+            baseCoolingTemp = coolantTemp;
+            coolingTemp = baseCoolingTemp;
+            coolantTempSlider.value = coolantTemp;
+            coolantTempDisplay.textContent = coolantTemp;
+        });
+        coolantTempResetBtn.addEventListener('click', function() {
+            baseCoolingTemp = 60;
+            coolingTemp = baseCoolingTemp;
+            coolantTempSlider.value = baseCoolingTemp;
+            coolantTempDisplay.textContent = baseCoolingTemp;
+        });
+        
         
         // Pipe length slider control
         const pipeLengthSlider = document.getElementById('pipeLengthSlider');
@@ -676,7 +694,6 @@
         pipeLengthSlider.addEventListener('input', function() {
             pipeLength = parseInt(this.value);
             pipeLengthDisplay.textContent = pipeLength;
-            simulate();
         });
         
         // PID control mode
@@ -773,60 +790,59 @@
             }
         });
         
-        // Step Change button - adds a random disturbance to coolant temperature
-        const coolantTempStepChangeBtn = document.getElementById('coolantTempStepChangeBtn');
-        coolantTempStepChangeBtn.addEventListener('click', function() {
-            // Apply a random step change of roughly ±10°F to the base cooling temp
-            const stepChange = (Math.random() > 0.5 ? 1 : -1) * (8 + Math.random() * 4); // ±8 to ±12°F
-            baseCoolingTemp += stepChange;
-            
-            // Keep within reasonable bounds (50-90°F)
-            baseCoolingTemp = Math.max(50, Math.min(90, baseCoolingTemp));
-        });
-        
-        // Step Change button - adds a random disturbance to inlet temperature
+        // Inlet Temp Disturbance Controls
+        const inletTempSlider = document.getElementById('inletTempSlider');
+        const inletTempDisplay = document.getElementById('inletTempDisplay');
         const inletTempStepChangeBtn = document.getElementById('inletTempStepChangeBtn');
+        const inletTempResetBtn = document.getElementById('inletTempResetBtn');
         inletTempStepChangeBtn.addEventListener('click', function() {
-            // Apply a random step change of roughly ±10°F to the base inlet temp
-            const stepChange = (Math.random() > 0.5 ? 1 : -1) * (8 + Math.random() * 4); // ±8 to ±12°F
-            baseinletTemp += stepChange;
+            const stepChange = Math.floor((Math.random() * 50) + 150); // ±40 to ±80°F
+            baseinletTemp = stepChange;
+            inletTempSlider.value = baseinletTemp;
+            inletTempDisplay.textContent = baseinletTemp;
             
-            // Keep within reasonable bounds (140-210°F)
-            baseinletTemp = Math.max(140, Math.min(210, baseinletTemp));
         });
+        inletTempSlider.addEventListener('input', function() {
+            const temp = parseInt(this.value);
+            baseinletTemp = temp;
+            inletTemp = baseinletTemp;
+            inletTempSlider.value = inletTemp;
+            inletTempDisplay.textContent = inletTemp;
+        });
+        inletTempResetBtn.addEventListener('click', function() {
+            baseinletTemp = 175;
+            inletTemp = baseinletTemp;
+            inletTempSlider.value = baseinletTemp;
+            inletTempDisplay.textContent = baseinletTemp;
+        });
+
         
         // Inlet Temp Noise button - cycles through smoothing values
         const inletTempNoiseBtn = document.getElementById('inletTempNoiseBtn');
-        const noiseLevelDisplay = document.getElementById('noiseLevel');
+        const noiseLevelDisplay = document.getElementById('inletNoiseLevel');
         const noiseLevels = [
-            { smoothing: 0.9, label: 'Low' },
-            { smoothing: 0.5, label: 'Medium' },
-            { smoothing: 0.15, label: 'High' }
+            { smoothing: 0.9, label: '🕨' },
+            { smoothing: 0.5, label: '🕩' },
+            { smoothing: 0.15, label: '🕪' }
         ];
-        let currentNoiseIndex = 0; // Start at Medium (0.5)
-        
+        let currentInletNoiseIndex = 0; // Start at Medium (0.5)
         inletTempNoiseBtn.addEventListener('click', function() {
             // Cycle to next noise level
-            currentNoiseIndex = (currentNoiseIndex + 1) % noiseLevels.length;
-            inletTempSmoothing = noiseLevels[currentNoiseIndex].smoothing;
-            noiseLevelDisplay.textContent = noiseLevels[currentNoiseIndex].label;
+            currentInletNoiseIndex = (currentInletNoiseIndex + 1) % noiseLevels.length;
+            inletTempSmoothing = noiseLevels[currentInletNoiseIndex].smoothing;
+            noiseLevelDisplay.textContent = noiseLevels[currentInletNoiseIndex].label;
         });
-        
+      
         // Coolant Temp Noise button - cycles through smoothing values
         const coolantTempNoiseBtn = document.getElementById('coolantTempNoiseBtn');
         const coolantNoiseLevelDisplay = document.getElementById('coolantNoiseLevel');
-        const coolantNoiseLevels = [
-            { smoothing: 0.9, label: 'Low' },
-            { smoothing: 0.5, label: 'Medium' },
-            { smoothing: 0.15, label: 'High' }
-        ];
         let currentCoolantNoiseIndex = 0; // Start at Medium (0.5)
         
         coolantTempNoiseBtn.addEventListener('click', function() {
             // Cycle to next noise level
-            currentCoolantNoiseIndex = (currentCoolantNoiseIndex + 1) % coolantNoiseLevels.length;
-            coolingTempSmoothing = coolantNoiseLevels[currentCoolantNoiseIndex].smoothing;
-            coolantNoiseLevelDisplay.textContent = coolantNoiseLevels[currentCoolantNoiseIndex].label;
+            currentCoolantNoiseIndex = (currentCoolantNoiseIndex + 1) % noiseLevels.length;
+            coolingTempSmoothing = noiseLevels[currentCoolantNoiseIndex].smoothing;
+            coolantNoiseLevelDisplay.textContent = noiseLevels[currentCoolantNoiseIndex].label;
         });
     </script>
 </body>

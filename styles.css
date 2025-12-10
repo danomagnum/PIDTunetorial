@@ -542,3 +542,25 @@ h1 {
 .step-change-btn:active {
     background-color: #ba4a00;
 }
+
+.disturbance-control {
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+}
+
+.slider-section {
+    flex: 1;
+}
+
+.button-section {
+    flex-shrink: 0;
+    min-width: 120px;
+    display: flex;
+}
+.button-section button{
+    margin-left: 1em;
+    font-size: x-large;
+    font-weight: bold;
+    min-width: 2em;
+}
